@@ -1,78 +1,50 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { Appearance, View, useColorScheme as useSystemColorScheme } from "react-native";
+import { createContext, useContext, useEffect, useMemo } from "react";
+import { View } from "react-native";
 import { colorScheme as nativewindColorScheme, vars } from "nativewind";
-
 import { SchemeColors, type ColorScheme } from "@/constants/theme";
 
-type ThemeContextValue = {
-  colorScheme: ColorScheme;
-  setColorScheme: (scheme: ColorScheme) => void;
-};
+type ThemeContextValue = { colorScheme: ColorScheme };
 
-const ThemeContext = createContext<ThemeContextValue | null>(null);
+const ThemeContext = createContext<ThemeContextValue>({ colorScheme: "light" });
 
+// Madar ships a single warm light theme; the palette is applied as CSS variables on web
+// and NativeWind variables on native so `bg-primary` etc. resolve everywhere.
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const systemScheme = useSystemColorScheme() === "dark" ? "dark" : "light";
-  const [colorScheme, setColorSchemeState] = useState<ColorScheme>(systemScheme);
+  const colorScheme: ColorScheme = "light";
+  const palette = SchemeColors[colorScheme];
 
-  const applyScheme = useCallback((scheme: ColorScheme) => {
-    nativewindColorScheme.set(scheme);
-    Appearance.setColorScheme?.(scheme);
+  useEffect(() => {
+    try {
+      nativewindColorScheme.set(colorScheme);
+    } catch {
+      // ignore: unsupported on some platforms
+    }
     if (typeof document !== "undefined") {
       const root = document.documentElement;
-      root.dataset.theme = scheme;
-      root.classList.toggle("dark", scheme === "dark");
-      const palette = SchemeColors[scheme];
+      root.dataset.theme = colorScheme;
+      root.lang = "ar";
+      root.dir = "rtl";
       Object.entries(palette).forEach(([token, value]) => {
         root.style.setProperty(`--color-${token}`, value);
       });
     }
-  }, []);
-
-  const setColorScheme = useCallback((scheme: ColorScheme) => {
-    setColorSchemeState(scheme);
-    applyScheme(scheme);
-  }, [applyScheme]);
-
-  useEffect(() => {
-    applyScheme(colorScheme);
-  }, [applyScheme, colorScheme]);
+  }, [palette]);
 
   const themeVariables = useMemo(
     () =>
-      vars({
-        "color-primary": SchemeColors[colorScheme].primary,
-        "color-background": SchemeColors[colorScheme].background,
-        "color-surface": SchemeColors[colorScheme].surface,
-        "color-foreground": SchemeColors[colorScheme].foreground,
-        "color-muted": SchemeColors[colorScheme].muted,
-        "color-border": SchemeColors[colorScheme].border,
-        "color-success": SchemeColors[colorScheme].success,
-        "color-warning": SchemeColors[colorScheme].warning,
-        "color-error": SchemeColors[colorScheme].error,
-      }),
-    [colorScheme],
-  );
-
-  const value = useMemo(
-    () => ({
-      colorScheme,
-      setColorScheme,
-    }),
-    [colorScheme, setColorScheme],
+      vars(
+        Object.fromEntries(Object.entries(palette).map(([token, value]) => [`color-${token}`, value])),
+      ),
+    [palette],
   );
 
   return (
-    <ThemeContext.Provider value={value}>
+    <ThemeContext.Provider value={{ colorScheme }}>
       <View style={[{ flex: 1 }, themeVariables]}>{children}</View>
     </ThemeContext.Provider>
   );
 }
 
 export function useThemeContext(): ThemeContextValue {
-  const ctx = useContext(ThemeContext);
-  if (!ctx) {
-    throw new Error("useThemeContext must be used within ThemeProvider");
-  }
-  return ctx;
+  return useContext(ThemeContext);
 }

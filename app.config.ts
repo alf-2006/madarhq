@@ -28,7 +28,7 @@ const schemeFromBundleId = `manus${timestamp}`;
 
 const env = {
   // App branding - update these values directly (do not use env vars)
-  appName: "مدار — إدارة فريق العمل",
+  appName: "مدار",
   appSlug: "madarhq",
   // S3 URL of the app logo - set this to the URL returned by generate_image when creating custom logo
   // Leave empty to use the default icon from assets/images/icon.png
@@ -38,27 +38,13 @@ const env = {
   androidPackage: bundleId,
 };
 
-// Expo serializes this browser-safe subset into native and web bundles. The server-only
-// MANUS_API_KEY and MANUS_JWT_SECRET must never enter this object.
+// Public, browser-safe runtime values. The Supabase publishable key is designed to ship in clients;
+// data access is enforced by Postgres row level security.
 const publicRuntime = {
-  oauthPortalUrl:
-    process.env.MANUS_OAUTH_PORTAL_URL ??
-    process.env.VITE_OAUTH_PORTAL_URL ??
-    process.env.EXPO_PUBLIC_OAUTH_PORTAL_URL ??
-    "",
-  oauthServerUrl:
-    process.env.MANUS_OAUTH_API_URL ??
-    process.env.OAUTH_SERVER_URL ??
-    process.env.EXPO_PUBLIC_OAUTH_SERVER_URL ??
-    "",
-  appId:
-    process.env.MANUS_PROJECT_ID ??
-    process.env.VITE_APP_ID ??
-    process.env.EXPO_PUBLIC_APP_ID ??
-    "",
-  apiBaseUrl: process.env.EXPO_PUBLIC_API_BASE_URL ?? "",
+  supabaseUrl: process.env.EXPO_PUBLIC_SUPABASE_URL ?? "https://nuotqfpkoffuwkoqdtte.supabase.co",
+  supabaseKey:
+    process.env.EXPO_PUBLIC_SUPABASE_KEY ?? "sb_publishable_aFV-vjtaksRROqsw5sk4kQ_wZZ9y-sb",
 };
-
 const config: ExpoConfig = {
   name: env.appName,
   slug: env.appSlug,
@@ -67,7 +53,7 @@ const config: ExpoConfig = {
   orientation: "portrait",
   icon: "./assets/images/icon.png",
   scheme: env.scheme,
-  userInterfaceStyle: "automatic",
+  userInterfaceStyle: "light",
   ios: {
     supportsTablet: true,
     bundleIdentifier: env.iosBundleId,
@@ -77,7 +63,7 @@ const config: ExpoConfig = {
   },
   android: {
     adaptiveIcon: {
-      backgroundColor: "#E6F4FE",
+      backgroundColor: "#F7F4EC",
       foregroundImage: "./assets/images/android-icon-foreground.png",
       backgroundImage: "./assets/images/android-icon-background.png",
       monochromeImage: "./assets/images/android-icon-monochrome.png",
@@ -101,35 +87,19 @@ const config: ExpoConfig = {
   },
   web: {
     bundler: "metro",
-    output: "static",
+    output: "single",
     favicon: "./assets/images/favicon.png",
   },
   plugins: [
     "expo-asset",
     "expo-router",
     [
-      "expo-audio",
-      {
-        microphonePermission: "Allow $(PRODUCT_NAME) to access your microphone.",
-      },
-    ],
-    [
-      "expo-video",
-      {
-        supportsBackgroundPlayback: true,
-        supportsPictureInPicture: true,
-      },
-    ],
-    [
       "expo-splash-screen",
       {
         image: "./assets/images/splash-icon.png",
         imageWidth: 200,
         resizeMode: "contain",
-        backgroundColor: "#ffffff",
-        dark: {
-          backgroundColor: "#000000",
-        },
+        backgroundColor: "#F7F4EC",
       },
     ],
     [
@@ -143,8 +113,7 @@ const config: ExpoConfig = {
     ],
   ],
   experiments: {
-    typedRoutes: true,
-    reactCompiler: true,
+    typedRoutes: false,
   },
 };
 

@@ -1,17 +1,23 @@
+type Swatch = { light: string; dark: string };
 export const themeColors: {
-  primary: { light: string; dark: string };
-  background: { light: string; dark: string };
-  surface: { light: string; dark: string };
-  foreground: { light: string; dark: string };
-  muted: { light: string; dark: string };
-  border: { light: string; dark: string };
-  success: { light: string; dark: string };
-  warning: { light: string; dark: string };
-  error: { light: string; dark: string };
+  primary: Swatch;
+  "primary-soft": Swatch;
+  forest: Swatch;
+  background: Swatch;
+  surface: Swatch;
+  sand: Swatch;
+  foreground: Swatch;
+  muted: Swatch;
+  border: Swatch;
+  success: Swatch;
+  warning: Swatch;
+  "warning-soft": Swatch;
+  error: Swatch;
+  "error-soft": Swatch;
+  info: Swatch;
+  "info-soft": Swatch;
 };
-
 declare const themeConfig: {
   themeColors: typeof themeColors;
 };
-
 export default themeConfig;
